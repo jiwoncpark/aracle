@@ -1,0 +1,8 @@
+drms
+nose
+numpy
+astropy
+shutil
+skvideo
+pillow
+sunpy
