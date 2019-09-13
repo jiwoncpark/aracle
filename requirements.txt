@@ -3,6 +3,6 @@ nose
 numpy
 scipy
 astropy
-skvideo
+scikit-video
 pillow
 sunpy
