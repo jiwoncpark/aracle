@@ -12,6 +12,7 @@ $conda activate aracle
 2. Install PyTorch stable and torchvision following the [official instructions](https://pytorch.org/), e.g.,
 
 ::
+
 $conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
 
 3. Now do one of the following. 
