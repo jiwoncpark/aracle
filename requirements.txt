@@ -1,8 +1,8 @@
 drms
 nose
 numpy
+scipy
 astropy
-shutil
 skvideo
 pillow
 sunpy
