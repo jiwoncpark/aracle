@@ -1,0 +1,20 @@
+language: python
+
+python:
+    - '3.6'
+
+compiler:
+    - g++
+   
+cache:
+    ccache: true
+    pip: true
+
+install:
+    - "pip install -e ."
+
+script:
+    - "python setup.py test"
+
+after_success:
+    - codecov
