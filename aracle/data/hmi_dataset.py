@@ -4,24 +4,32 @@ import torch
 from PIL import Image
 
 class HMIDataset(object):
-    def __init__(self, root, transforms,
-                 imgs_dirname='X_images_res256',
-                 masks_dirname='Y_masks_res256',
-                 img_list_fname='X_filenames.txt',
-                 masks_list_fname='Y_filenames.txt'):
+    def __init__(self, X_transforms,
+                 Y_transforms=None,
+                 imgs_dir='X_images_uncropped_circle_res256',
+                 masks_dir='Y_masks_uncropped_circle_res256',):
+        """
+
+        Parameters
+        ----------
+        transforms : 
+        imgs_dir : str or os.path object
+            path to the directory containing the X images
+        masks_dir : str or os.path. object
+            path to the directory containing the Y masks
+
+        """
         
-        self.root = root
-        self.images_dir = imgs_dirname
-        self.masks_dir = masks_dirname
-        self.transforms = transforms
-        # Paths of directories containing images and masks 
-        self.imgs_dir = os.path.join(root, imgs_dirname)
-        self.masks_dir = os.path.join(root, masks_dirname)
+        self.imgs_dir = imgs_dir
+        self.masks_dir = masks_dir
+        self.X_transforms = X_transforms
+        self.Y_transforms = Y_transforms
         # Load the filenames of all image/mask files, sorting them to
         # ensure that they are aligned
         self.imgs_list = list(sorted(os.listdir(self.imgs_dir)))
         self.masks_list = list(sorted(os.listdir(self.masks_dir)))
-        
+        assert len(self.imgs_list) == len(self.masks_list)
+
     def __getitem__(self, idx):
         # load images ad masks
         img_path = os.path.join(self.imgs_dir, self.imgs_list[idx])
@@ -39,11 +47,14 @@ class HMIDataset(object):
 
         # split the color-encoded mask into a set
         # of binary masks
-        masks = mask == obj_ids[:, None, None] # shape [H, W, n_class - 1]
+        masks = mask == obj_ids[:, None, None] # shape [N, H, W]
 
         # get bounding box coordinates for each mask
-        num_objs = len(obj_ids)
+        num_objs = len(obj_ids) # this didn't work
+        #num_objs = len(masks)
+
         boxes = []
+
         for i in range(num_objs):
             pos = np.where(masks[i])
             xmin = np.min(pos[1])
@@ -71,10 +82,31 @@ class HMIDataset(object):
         target["area"] = area
         target["iscrowd"] = iscrowd
 
-        if self.transforms is not None:
-            img, target = self.transforms(img, target)
+        if self.X_transforms is not None:
+            img = self.X_transforms(img)
 
         return img, target
 
     def __len__(self):
         return len(self.imgs_list)
+
+if __name__ == '__main__':
+    import torchvision.transforms as transforms
+    import aracle.data
+
+    X_transforms = transforms.Compose([transforms.ToTensor()])
+    Y_transforms = transforms.Compose([transforms.ToTensor()])
+    data_dir = os.path.dirname(aracle.data.__file__)
+    imgs_dir = os.path.join(data_dir, 'minidata', 'X_images_uncropped_circle_res256')
+    masks_dir = os.path.join(data_dir, 'minidata', 'Y_masks_uncropped_circle_res256')
+
+    hmi_dataset = HMIDataset(X_transforms=X_transforms,
+                             Y_transforms=Y_transforms,
+                             imgs_dir=imgs_dir,
+                             masks_dir=masks_dir)
+    n_data = len(hmi_dataset)
+    print(n_data)
+    print(hmi_dataset[0][0].shape)
+    sample_dict = hmi_dataset[0][1]
+    print(sample_dict['masks'].shape)
+    print(sample_dict['boxes'].shape)
