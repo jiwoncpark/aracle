@@ -2,9 +2,11 @@
 *.csv
 *.npy
 *.txt
-out_data/*
 *.zip
 *.fits
+*.pickle
+out_data/*
+minidata/*
 
 # HTML builds
 docs/_build/*
