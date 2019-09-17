@@ -1,6 +1,6 @@
 drms
 nose
-Cython
+cython
 pycocotools
 numpy
 scipy
