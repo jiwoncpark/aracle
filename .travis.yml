@@ -1,7 +1,9 @@
+group: travis_latest
+
 language: python
 
 python:
-    - '3.6'
+    - 3.6
 
 compiler:
     - g++
@@ -11,10 +13,8 @@ cache:
     pip: true
 
 install:
-    - "pip install -e . --user"
-
-script:
-    - "python setup.py test"
+    - pip install --upgrade pip
+    - pip install -e .
 
 after_success:
     - codecov
