@@ -1,11 +1,11 @@
 import os, sys
 import torch
 import torchvision
-import torchvision.transforms as transforms
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 from engine import train_one_epoch, evaluate
 import utils
+import aracle.transforms_utils as transforms_utils
 import aracle.data
 
 def get_model_instance_segmentation(num_classes):
@@ -27,6 +27,11 @@ def get_model_instance_segmentation(num_classes):
 
     return model
 
+
+def get_transforms():
+    transforms_list = [transforms_utils.ToTensor()]
+    return transforms_utils.Compose(transforms_list)
+
 if __name__ == '__main__':
     # train on the GPU or on the CPU, if a GPU is not available
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -35,14 +40,14 @@ if __name__ == '__main__':
     # Our dataset has two classes only - background and person
     num_classes = 2
     # Define transforms
-    X_transforms = transforms.Compose([transforms.ToTensor()])
+    transforms = get_transforms()
     data_dir = os.path.dirname(aracle.data.__file__)
     # Define raw data directories
     imgs_dir = os.path.join(data_dir, 'minidata', 'X_images_uncropped_circle_res256')
     masks_dir = os.path.join(data_dir, 'minidata', 'Y_masks_uncropped_circle_res256')
     # Instantiate datasets
-    dataset = aracle.data.HMIDataset(X_transforms, imgs_dir=imgs_dir, masks_dir=masks_dir)
-    dataset_test = aracle.data.HMIDataset(X_transforms, imgs_dir=imgs_dir, masks_dir=masks_dir)
+    dataset = aracle.data.HMIDataset(transforms, imgs_dir=imgs_dir, masks_dir=masks_dir)
+    dataset_test = aracle.data.HMIDataset(transforms, imgs_dir=imgs_dir, masks_dir=masks_dir)
 
     # split the dataset in train and test set
     indices = torch.randperm(len(dataset)).tolist()

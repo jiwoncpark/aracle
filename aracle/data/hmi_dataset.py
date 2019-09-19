@@ -4,8 +4,7 @@ import torch
 from PIL import Image
 
 class HMIDataset(object):
-    def __init__(self, X_transforms,
-                 Y_transforms=None,
+    def __init__(self, transforms,
                  imgs_dir='X_images_uncropped_circle_res256',
                  masks_dir='Y_masks_uncropped_circle_res256',):
         """
@@ -22,8 +21,7 @@ class HMIDataset(object):
         
         self.imgs_dir = imgs_dir
         self.masks_dir = masks_dir
-        self.X_transforms = X_transforms
-        self.Y_transforms = Y_transforms
+        self.transforms = transforms
         # Load the filenames of all image/mask files, sorting them to
         # ensure that they are aligned
         self.imgs_list = list(sorted(os.listdir(self.imgs_dir)))
@@ -82,8 +80,8 @@ class HMIDataset(object):
         target["area"] = area
         target["iscrowd"] = iscrowd
 
-        if self.X_transforms is not None:
-            img = self.X_transforms(img)
+        if self.transforms is not None:
+            img, target = self.transforms(img, target)
 
         return img, target
 
@@ -91,17 +89,15 @@ class HMIDataset(object):
         return len(self.imgs_list)
 
 if __name__ == '__main__':
-    import torchvision.transforms as transforms
+    import aracle.transforms_utils as transforms_utils
     import aracle.data
 
-    X_transforms = transforms.Compose([transforms.ToTensor()])
-    Y_transforms = transforms.Compose([transforms.ToTensor()])
+    transforms = transforms_utils.Compose([transforms_utils.ToTensor()])
     data_dir = os.path.dirname(aracle.data.__file__)
     imgs_dir = os.path.join(data_dir, 'minidata', 'X_images_uncropped_circle_res256')
     masks_dir = os.path.join(data_dir, 'minidata', 'Y_masks_uncropped_circle_res256')
 
-    hmi_dataset = HMIDataset(X_transforms=X_transforms,
-                             Y_transforms=Y_transforms,
+    hmi_dataset = HMIDataset(transforms,
                              imgs_dir=imgs_dir,
                              masks_dir=masks_dir)
     n_data = len(hmi_dataset)
