@@ -41,7 +41,8 @@ if __name__ == '__main__':
     num_classes = 2
     # Define transforms
     transforms = get_transforms()
-    data_dir = os.path.dirname(aracle.data.__file__)
+    #data_dir = os.path.dirname(aracle.data.__file__)
+    data_dir = '/nobackup/jpark45'
     # Define raw data directories
     imgs_dir = os.path.join(data_dir, 'minidata', 'X_images_uncropped_circle_res256')
     masks_dir = os.path.join(data_dir, 'minidata', 'Y_masks_uncropped_circle_res256')
