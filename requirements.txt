@@ -1,10 +1,9 @@
 drms
 nose
-cython
 pycocotools
 numpy
 scipy
 astropy
 scikit-video
 pillow
-sunpy[all]
+sunpy

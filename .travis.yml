@@ -6,14 +6,17 @@ python:
     - 3.6
 
 compiler:
-    - gcc
+    - g++
    
 cache:
     ccache: true
     pip: true
 
-install:
+before_install:
     - pip install --upgrade pip
+    - pip install cython
+
+install:
     - pip install -e .
 
 after_success:
