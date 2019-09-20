@@ -46,6 +46,7 @@ class HMIDataset(object):
         # split the color-encoded mask into a set
         # of binary masks
         masks = mask == obj_ids[:, None, None] # shape [N, H, W]
+        masks = masks.astype(int)
 
         # get bounding box coordinates for each mask
         num_objs = len(obj_ids) # this didn't work
@@ -93,7 +94,8 @@ if __name__ == '__main__':
     import aracle.data
 
     transforms = transforms_utils.Compose([transforms_utils.ToTensor()])
-    data_dir = os.path.dirname(aracle.data.__file__)
+    #data_dir = os.path.dirname(aracle.data.__file__)
+    data_dir = '/nobackup/jpark45'
     imgs_dir = os.path.join(data_dir, 'minidata', 'X_images_uncropped_circle_res256')
     masks_dir = os.path.join(data_dir, 'minidata', 'Y_masks_uncropped_circle_res256')
 
