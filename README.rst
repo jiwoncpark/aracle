@@ -55,7 +55,7 @@ How to train
 
 ::
 
-$python -m aracle.toy_data.generate_toy_data 5 224 ./toy_data 
+$python -m aracle.toy_data.generate_toy_data 5 224 ./my_data 
 
 2. Run
 
