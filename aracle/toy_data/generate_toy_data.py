@@ -78,7 +78,7 @@ def main():
             n_time_steps = n_time_steps_for_last_toy_square
         for t in range(n_time_steps):
             img_filename = 'toy_{0:07d}.npy'.format(current_n)
-            #toy_squares.export_image(img_filename)
+            toy_squares.export_image(os.path.join(args.dest_dir, img_filename))
             toy_squares.increment_time_step()
             metadata_df = metadata_df.append(
                                              dict(img_idx=current_n,

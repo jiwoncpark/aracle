@@ -15,7 +15,7 @@ class TestGenerateToyData(unittest.TestCase):
         passed = False
         dest_dir = os.path.abspath('./test_toy_generate')
         try:
-            subprocess.check_output('generate_toy_data 2 5 {:s}'.format(dest_dir), shell=True)
+            subprocess.check_output('python -m aracle.toy_data.generate_toy_data 2 5 {:s}'.format(dest_dir), shell=True)
         except:
             passed = False
         if os.path.exists(dest_dir):
