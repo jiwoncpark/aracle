@@ -1,8 +1,5 @@
 from setuptools import setup, find_packages
-print(find_packages())
-required_packages = []
-with open('requirements.txt') as f:
-    required_packages = f.read().splitlines()
+print(find_packages('.'))
 
 setup(
       name='aracle',
@@ -15,12 +12,13 @@ setup(
       long_description=open("README.md").read(),
       long_description_content_type='text/markdown',
       url='https://github.com/jiwoncpark/aracle',
-      install_requires=required_packages,
       #dependency_links=[],
       include_package_data=True,
-      #entry_points={
-      #'console_scripts': ['generate=baobab.generate:main',],
-      #},
+      entry_points={
+      'console_scripts': [
+      'generate_toy_data=aracle.toy_data.generate_toy_data:main',
+      ],
+      },
       test_suite='nose.collector',
       tests_require=['nose'],
       classifiers=['Development Status :: 4 - Beta',
