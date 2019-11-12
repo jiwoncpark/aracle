@@ -47,8 +47,8 @@ if __name__ == '__main__':
     imgs_dir = os.path.join(data_dir, 'minidata', 'X_images_uncropped_circle_res256')
     masks_dir = os.path.join(data_dir, 'minidata', 'Y_masks_uncropped_circle_res256')
     # Instantiate datasets
-    dataset = aracle.data.HMIDataset(transforms, imgs_dir=imgs_dir, masks_dir=masks_dir)
-    dataset_test = aracle.data.HMIDataset(transforms, imgs_dir=imgs_dir, masks_dir=masks_dir)
+    dataset = aracle.data.FasterRCNNDataset(transforms, imgs_dir=imgs_dir, masks_dir=masks_dir)
+    dataset_test = aracle.data.FasterRCNNDataset(transforms, imgs_dir=imgs_dir, masks_dir=masks_dir)
 
     # split the dataset in train and test set
     indices = torch.randperm(len(dataset)).tolist()
