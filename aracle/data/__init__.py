@@ -1,3 +1,4 @@
-from .hmi_dataset import HMIDataset
+from .resnet_dataset import ResNetDataset
+from .faster_rcnn_dataset import FasterRCNNDataset
 
-__all__ = ['hmi_dataset']
+__all__ = ['ResNetDataset', 'FasterRCNNDataset']

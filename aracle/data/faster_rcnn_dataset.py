@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-class HMIDataset(object):
+class FasterRCNNDataset(object):
     def __init__(self, transforms,
                  imgs_dir='X_images_uncropped_circle_res256',
                  masks_dir='Y_masks_uncropped_circle_res256',):
