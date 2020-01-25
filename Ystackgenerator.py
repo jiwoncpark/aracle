@@ -1,18 +1,26 @@
 import numpy as np
 import astropy.units as u
-import os
+import os, fnmatch
 import sunpy.coordinates
 import pandas as pd
 import shutil
 import math
+import random
 import pickle
 import warnings
-from datetime import date, time, datetime, timedelta
+import sunpy.map
+import sys
+import imageio
+import matplotlib as plt
+import matplotlib.pyplot as pyplot
+from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord
 from sunpy.coordinates import frames
-from PIL import Image, ImageDraw
+from PIL import Image, ImageOps, ImageDraw, ImageFont
 from astropy.io import fits
+from skimage import img_as_ubyte
 
+TIME_INTERVAL = timedelta(minutes = 60)
 CROP_FACTOR = .1 #CROP_FACTOR * 2 is the portion you crop
 CROP_INDEX = 4096 * CROP_FACTOR
 SD_FACTOR = 3#SD_FACTOR is the number of standard deviations within the radius of the circle
@@ -27,10 +35,11 @@ def load_df(df_path):#load data text file
    
 def generate_max_radius_rows(df):
     max_radius_rows = df[df.groupby(['HARPNUM'])['NPIX'].transform(max) == df['NPIX']]#fix iloc issue
+    max_radius_rows = max_radius_rows.reset_index(drop = True)
     return max_radius_rows#dataframe containing each harp at its max size
 
 def generate_radius_dict(max_radius_rows):
-    max_radius_rows['RADIUS'] = max_radius_rows[['NAXIS1', 'NAXIS2']].max(axis=1)/2#find the max height/width then divide by 2
+    max_radius_rows['RADIUS'] = max_radius_rows.loc[:,['NAXIS1', 'NAXIS2']].max(axis=1)/2#find the max height/width then divide by 2
     radius_dict = pd.Series(max_radius_rows.RADIUS.values,index=max_radius_rows.HARPNUM).to_dict()#dict of each max radius
     return radius_dict
 
@@ -87,11 +96,12 @@ def get_width_height(row,width_height_type):
     raise ValueError('You have selected an invalid dimension type: {}. Please select: real-time,bounding-box,or max-size'.format(width_height_type))
 
 def get_bitmap(fits_file_path):#run ignore warnings to kill warnings from the second line of this function 
-    hdul = fits.open(fits_file_path)
-    hdul[1].verify('fix')
-    bitmap = hdul[1].data
-    bitmap[np.add(bitmap == 1,bitmap == 2)] = 0#set bitmap to binary
-    bitmap[np.add(bitmap == 33,bitmap == 34)] = 1#1 and 2 are off-harp, 33 and 34 are in-harp
+    bitmap = sunpy.map.Map(fits_file_path)
+    bitmap = bitmap.data
+    bitmap[np.add(bitmap == 1,bitmap == 2)] = 0#set off_harp values
+    off_harp = (bitmap == 0)
+    on_harp = np.logical_not(off_harp)
+    bitmap[on_harp] = 1#everything else set to 1
     return bitmap
 
 def edge_check(xc,yc,width,height):
@@ -149,10 +159,10 @@ def save_bitmap_stack(image_list,current_time,size,dir_name,cropped):#refactor
     
 def generate_filled_circle(start,end,sizes,dir_name,cropped = False,dim_type = 'real-time'):
     generate_sizedirs(sizes,dir_name)
-    number_disks = int((end-start)/time_interval + 1)
+    number_disks = int((end-start)/TIME_INTERVAL + 1)
     print('Generating filled_circles: cropped = {} dim_type = {}, {} thru {} at sizes {}'.format(cropped,dim_type,start,end,sizes))
     for i in range(number_disks):
-        current_time = start + i*time_interval
+        current_time = start + i*TIME_INTERVAL
         timestring = current_time.strftime('%Y.%m.%d_%X_TAI')
         rows = df.loc[df['T_REC'] == timestring].reset_index()
         if (not(rows.empty)):
@@ -170,10 +180,10 @@ def generate_filled_circle(start,end,sizes,dir_name,cropped = False,dim_type = '
                 
 def generate_filled_ellipse(start,end,sizes,dir_name,cropped = False,dim_type = 'real-time'):
     generate_sizedirs(sizes,dir_name)
-    number_disks = int((end-start)/time_interval + 1)
+    number_disks = int((end-start)/TIME_INTERVAL + 1)
     print('Generating filled_ellipses: cropped = {} dim_type = {}, {} thru {} at sizes {}'.format(cropped,dim_type,start,end,sizes))
     for i in range(number_disks):
-        current_time = start + i*time_interval
+        current_time = start + i*TIME_INTERVAL
         timestring = current_time.strftime('%Y.%m.%d_%X_TAI')
         rows = df.loc[df['T_REC'] == timestring].reset_index()
         if (not(rows.empty)):
@@ -191,10 +201,10 @@ def generate_filled_ellipse(start,end,sizes,dir_name,cropped = False,dim_type = 
 
 def generate_gaussian_circle(start,end,sizes,dir_name,cropped = False,dim_type = 'real-time'):
     generate_sizedirs(sizes,dir_name)
-    number_disks = int((end-start)/time_interval + 1)
+    number_disks = int((end-start)/TIME_INTERVAL + 1)
     print('Generating gaussian_circles: cropped = {} dim_type = {}, {} thru {} at sizes {}'.format(cropped,dim_type,start,end,sizes))
     for i in range(number_disks):
-        current_time = start + i*time_interval
+        current_time = start + i*TIME_INTERVAL
         timestring = current_time.strftime('%Y.%m.%d_%X_TAI')
         rows = df.loc[df['T_REC'] == timestring].reset_index()
         if (not(rows.empty)):
@@ -212,10 +222,10 @@ def generate_gaussian_circle(start,end,sizes,dir_name,cropped = False,dim_type =
     
 def generate_gaussian_ellipse(start,end,sizes,dir_name,cropped = False,dim_type = 'real-time'):
     generate_sizedirs(sizes,dir_name)
-    number_disks = int((end-start)/time_interval + 1)
+    number_disks = int((end-start)/TIME_INTERVAL + 1)
     print('Generating gaussian_ellipses: cropped = {} dim_type = {}, {} thru {} at sizes {}'.format(cropped,dim_type,start,end,sizes))
     for i in range(number_disks):
-        current_time = start + i*time_interval
+        current_time = start + i*TIME_INTERVAL
         timestring = current_time.strftime('%Y.%m.%d_%X_TAI')
         rows = df.loc[df['T_REC'] == timestring].reset_index()
         if (not(rows.empty)):
@@ -232,36 +242,35 @@ def generate_gaussian_ellipse(start,end,sizes,dir_name,cropped = False,dim_type 
                     image_list.append(disk)
                 save_stack([Image.fromarray(layer) for layer in image_list],current_time,size,dir_name,cropped)
 
-def generate_filled_bitmap(start,end,sizes,dir_name,cropped = False,resize = 'LANCZOS'):
+def generate_filled_bitmap(start,end,sizes,dir_name,cropped = False):
     generate_sizedirs(sizes,dir_name)
-    number_disks = int((end-start)/time_interval + 1)
-    print('Generating filled_bitmaps: cropped = {} , {} thru {} at sizes {}'.format(cropped,start,end,sizes))
+    number_disks = int((end-start)/TIME_INTERVAL + 1)
+    print('Generating filled_bitmaps: cropped = {}, {} thru {} at sizes {}'.format(cropped,start,end,sizes))
     warnings.simplefilter("ignore")
     for i in range(number_disks):
-        current_time = start + i*time_interval
-        timestring = current_time.strftime('%Y' + '.' + '%m' + '.' + '%d' + '_' + '%X' + '_TAI')
+        current_time = start + i*TIME_INTERVAL
+        timestring = current_time.strftime('%Y.%m.%d_%X_TAI')
         rows = df.loc[df['T_REC'] == timestring].reset_index()
         if (not(rows.empty)):
             image_list = []
             for index, row in rows.iterrows():#iterate over rows
-                bitmap = get_bitmap(row['FILEDIR'])
+                bitmap_dir = row['FILEDIR']
+                bitmap = get_bitmap(bitmap_dir)
                 xc = row['CRPIX1'] + row['IMCRPIX1']
                 yc = row['CRPIX2'] + row['IMCRPIX2']
-                xc,yc = edge_check(xc,yc,bitmap.shape[1],bitmap.shape[0])
+                height,width = bitmap.shape
+                xc,yc = edge_check(xc,yc,width,height)
                 layer = np.zeros((4096,4096))
                 layer = plot_bitmap(xc,yc,bitmap,layer)
-                layer = np.flipud(layer)
+                layer = np.rot90(layer,2)
                 image_list.append(layer)
             for size in sizes:
                 save_bitmap_stack(image_list,current_time,size,dir_name,cropped)
                 
-#set time interval and check workdir 
-time_interval = timedelta(minutes = 60)
+#check workdir 
 #workdir = '/nobackup/afeghhi/HMI_Data'
 savedir = 'C:/Users/alexf/Desktop/HMI_Data'
 verify_dir(savedir)
-sharp_dir = os.path.join(savedir, 'sharp')
-verify_dir(sharp_dir)
 Ydata_dir =  os.path.join(savedir, 'Ydata')
 verify_dir(Ydata_dir)
 #load dataframe. Set maxradiusrows and the radius dictionary
@@ -272,6 +281,9 @@ radius_dict = generate_radius_dict(max_radius_rows)#run if generating circles at
 start = datetime(2010, 5, 1,0,0,0)#date time object format is year, month, day, hour, minute, second
 end = datetime(2010,6, 1, 0,0,0)#the end time is included amongst disks generated change back to year later
 sizes = [256,512]
+#delete and regenerate Ydirectory
+shutil.rmtree(Ydata_dir)
+os.mkdir(Ydata_dir)
 #run commands to generate data
-generate_filled_ellipse(start,end,sizes,os.path.join(Ydata_dir,'filled_ellipse_uncropped'))
+generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'filled_bitmaps_uncropped'),cropped = False)
 #os.system('chmod -R +777 ' + Ydata_dir)
