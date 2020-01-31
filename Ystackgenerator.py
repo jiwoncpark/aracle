@@ -21,7 +21,7 @@ from astropy.io import fits
 from skimage import img_as_ubyte
 
 TIME_INTERVAL = timedelta(minutes = 60)
-CROP_FACTOR = .1 #CROP_FACTOR * 2 is the portion you crop
+CROP_FACTOR = .29289321881 #CROP_FACTOR * 2 is the portion you crop
 CROP_INDEX = 4096 * CROP_FACTOR
 SD_FACTOR = 3#SD_FACTOR is the number of standard deviations within the radius of the circle
 THRESHOLD = np.exp(-0.5 * SD_FACTOR**2)#there will be no values less than THRESHOLD in gaussian disks
@@ -279,7 +279,7 @@ radius_dict = generate_radius_dict(max_radius_rows)#run if generating circles at
 #set start time, end time, and sizes to save in
 start = datetime(2010, 5, 1,0,0,0)#date time object format is year, month, day, hour, minute, second
 end = datetime(2011,5, 1, 0,0,0)#the end time is included amongst disks generated change back to year later
-sizes = [256,512]
+sizes = [256]
 #delete and regenerate Ydirectory
 shutil.rmtree(Ydata_dir)
 os.mkdir(Ydata_dir)
