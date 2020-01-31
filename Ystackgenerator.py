@@ -102,6 +102,7 @@ def get_bitmap(fits_file_path):#run ignore warnings to kill warnings from the se
     off_harp = (bitmap == 0)
     on_harp = np.logical_not(off_harp)
     bitmap[on_harp] = 1#everything else set to 1
+    bitmap = np.rot90(bitmap,2)#bitmaps are taken at a 180 degree angle
     return bitmap
 
 def edge_check(xc,yc,width,height):
@@ -116,7 +117,6 @@ def edge_check(xc,yc,width,height):
     return xc,yc
 
 def plot_bitmap(xc,yc,bitmap,layer):
-    yc = 4095 - yc
     xc = int(xc)
     yc = int(yc)
     layer[yc-bitmap.shape[0]:yc,xc:xc+bitmap.shape[1]] = bitmap
@@ -258,18 +258,17 @@ def generate_filled_bitmap(start,end,sizes,dir_name,cropped = False):
                 bitmap = get_bitmap(bitmap_dir)
                 xc = row['CRPIX1'] + row['IMCRPIX1']
                 yc = row['CRPIX2'] + row['IMCRPIX2']
-                height,width = bitmap.shape
+                width,height = bitmap.shape
                 xc,yc = edge_check(xc,yc,width,height)
                 layer = np.zeros((4096,4096))
                 layer = plot_bitmap(xc,yc,bitmap,layer)
-                layer = np.rot90(layer,2)
                 image_list.append(layer)
             for size in sizes:
                 save_bitmap_stack(image_list,current_time,size,dir_name,cropped)
                 
-#check workdir 
-#workdir = '/nobackup/afeghhi/HMI_Data'
-savedir = 'C:/Users/alexf/Desktop/HMI_Data'
+#check savedur 
+savedir = '/nobackup/afeghhi/HMI_Data'
+#savedir = 'C:/Users/alexf/Desktop/HMI_Data'
 verify_dir(savedir)
 Ydata_dir =  os.path.join(savedir, 'Ydata')
 verify_dir(Ydata_dir)
@@ -279,11 +278,11 @@ max_radius_rows = generate_max_radius_rows(df)#run if generating ellipses at max
 radius_dict = generate_radius_dict(max_radius_rows)#run if generating circles at max size
 #set start time, end time, and sizes to save in
 start = datetime(2010, 5, 1,0,0,0)#date time object format is year, month, day, hour, minute, second
-end = datetime(2010,6, 1, 0,0,0)#the end time is included amongst disks generated change back to year later
+end = datetime(2011,5, 1, 0,0,0)#the end time is included amongst disks generated change back to year later
 sizes = [256,512]
 #delete and regenerate Ydirectory
 shutil.rmtree(Ydata_dir)
 os.mkdir(Ydata_dir)
 #run commands to generate data
 generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'filled_bitmaps_uncropped'),cropped = False)
-#os.system('chmod -R +777 ' + Ydata_dir)
+os.system('chmod -R +777 ' + Ydata_dir)
