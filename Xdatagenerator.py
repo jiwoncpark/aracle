@@ -1,6 +1,5 @@
 import drms #pip install drms, astropy, sunpy , skvideo
 import numpy as np
-import astropy.units as u
 import shutil
 import os
 from astropy.io import fits
@@ -17,6 +16,7 @@ DATA_EXTENSION = '_TAI.1.magnetogram.fits'
 C = drms.Client(email=EMAIL, verbose = True) 
 CROP_FACTOR = .29289321881 #CROP_FACTOR * 2 is the portion you crop
 CROP_INDEX = 4096 * CROP_FACTOR
+MAGNETOGRAM_RESIZE = Image.LANCZOS
 
 def verify_dir(dir_name):
     if not os.path.exists(dir_name):
@@ -84,10 +84,10 @@ def save_hmi_array(hmi_data,timestamp,size,output_dir,cropped):
     filename = timestamp.strftime('%Y%m%d_%H%M%S') + '_' + str(size)
     savedir = os.path.join(output_dir + '_' + str(size),filename)
     if not cropped:
-        resized_hmi_image = np.array(Image.fromarray(hmi_data).resize((size,size),Image.LANCZOS))
+        resized_hmi_image = np.array(Image.fromarray(hmi_data).resize((size,size),MAGNETOGRAM_RESIZE))
     else:
         hmi_image_cropped = Image.fromarray(hmi_data).crop((CROP_INDEX,CROP_INDEX,4096-CROP_INDEX,4096-CROP_INDEX))
-        resized_hmi_image = np.array(Image.fromarray(hmi_image_cropped).resize((size,size),Image.LANCZOS))
+        resized_hmi_image = np.array(Image.fromarray(hmi_image_cropped).resize((size,size),MAGNETOGRAM_RESIZE))
     np.save(savedir,resized_hmi_image)
     
 def extract_and_resize(datetime_list,sizes,fits_dir,output_dir,cropped = False):
@@ -102,8 +102,10 @@ def extract_and_resize(datetime_list,sizes,fits_dir,output_dir,cropped = False):
             hmi_data[np.isnan(hmi_data)] = 0#set nan to 0
             for size in sizes:#resizes and saves numpy array data into given resizes
                 save_hmi_array(hmi_data,current_time,size,output_dir,cropped)
-    
-savedir = 'C:/Users/alexf/Desktop/HMI_Data'
+
+#check savedur 
+savedir = '/nobackup/afeghhi/HMI_Data'    
+#savedir = 'C:/Users/alexf/Desktop/HMI_Data'
 verify_dir(savedir)
 fits_dir = os.path.join(savedir,'fits')
 verify_dir(fits_dir)
@@ -112,7 +114,7 @@ verify_dir(Xdata_dir)
 start = datetime(2010,5,1,0,0,0)#date time object format is year, month, day, hour, minute, second
 end = datetime(2011,5,1,0,0,0)
 #download_fits_files(start,end,fits_dir)
-sizes = [256,512]
+sizes = [256]
 dates = generate_daterange(start,end)
 #delete and regenerate Xdirectory
 shutil.rmtree(Xdata_dir)
