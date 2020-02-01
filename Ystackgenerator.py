@@ -1,30 +1,29 @@
 import numpy as np
 import astropy.units as u
-import os, fnmatch
+import os
 import sunpy.coordinates
 import pandas as pd
 import shutil
 import math
-import random
 import pickle
 import warnings
 import sunpy.map
-import sys
-import imageio
 import matplotlib as plt
 import matplotlib.pyplot as pyplot
 from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
 from sunpy.coordinates import frames
 from PIL import Image, ImageOps, ImageDraw, ImageFont
-from astropy.io import fits
-from skimage import img_as_ubyte
 
 TIME_INTERVAL = timedelta(minutes = 60)
 CROP_FACTOR = .29289321881 #CROP_FACTOR * 2 is the portion you crop
 CROP_INDEX = 4096 * CROP_FACTOR
 SD_FACTOR = 3#SD_FACTOR is the number of standard deviations within the radius of the circle
 THRESHOLD = np.exp(-0.5 * SD_FACTOR**2)#there will be no values less than THRESHOLD in gaussian disks
+SYDISK_RESIZE = Image.BICUBIC
+BITMAP_RESIZE = Image.LANCZOS
+
 
 def load_df(df_path):#load data text file
     df = pickle.load(open(df_path,'rb'))
@@ -123,7 +122,7 @@ def plot_bitmap(xc,yc,bitmap,layer):
     return layer
 
 def generate_cropped_stack(image_list,size):
-    return np.stack([np.array(disk.crop((CROP_FACTOR * size,CROP_FACTOR * size,size-(CROP_FACTOR * size),size-(CROP_FACTOR * size))).resize((size,size), Image.BICUBIC)) for disk in image_list],axis=0)
+    return np.stack([np.array(disk.crop((CROP_FACTOR * size,CROP_FACTOR * size,size-(CROP_FACTOR * size),size-(CROP_FACTOR * size))).resize((size,size), SYDISK_RESIZE)) for disk in image_list],axis=0)
 
 def save_stack(image_list,current_time,size,dir_name,cropped):
     data_dir = dir_name + '_' + str(size)
@@ -141,10 +140,10 @@ def set_to_binary(array):
     return array
 
 def generate_array_list(image_list,size):
-    return [np.array(Image.fromarray(layer).resize((size,size),Image.LANCZOS)) for layer in image_list]
+    return [np.array(Image.fromarray(layer).resize((size,size),BITMAP_RESIZE)) for layer in image_list]
 
 def generate_cropped_array_list(image_list,size):
-    return [np.array(Image.fromarray(layer).crop((CROP_INDEX,CROP_INDEX,4096-CROP_INDEX,4096-CROP_INDEX)).resize((size,size),Image.LANCZOS)) for layer in image_list]
+    return [np.array(Image.fromarray(layer).crop((CROP_INDEX,CROP_INDEX,4096-CROP_INDEX,4096-CROP_INDEX)).resize((size,size),BITMAP_RESIZE)) for layer in image_list]
 
 def save_bitmap_stack(image_list,current_time,size,dir_name,cropped):#refactor
     data_dir = dir_name + '_' + str(size)
@@ -258,7 +257,7 @@ def generate_filled_bitmap(start,end,sizes,dir_name,cropped = False):
                 bitmap = get_bitmap(bitmap_dir)
                 xc = row['CRPIX1'] + row['IMCRPIX1']
                 yc = row['CRPIX2'] + row['IMCRPIX2']
-                width,height = bitmap.shape
+                height,width = bitmap.shape
                 xc,yc = edge_check(xc,yc,width,height)
                 layer = np.zeros((4096,4096))
                 layer = plot_bitmap(xc,yc,bitmap,layer)
@@ -285,4 +284,5 @@ shutil.rmtree(Ydata_dir)
 os.mkdir(Ydata_dir)
 #run commands to generate data
 generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'filled_bitmaps_uncropped'),cropped = False)
+generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'filled_bitmaps_cropped'),cropped = True)
 os.system('chmod -R +777 ' + Ydata_dir)
