@@ -14,6 +14,7 @@ EMAIL = 'hsmgroupnasa@gmail.com'#use a group email
 X_DATA_SERIES = 'hmi.M_720s'
 DATA_EXTENSION = '_TAI.1.magnetogram.fits'
 C = drms.Client(email=EMAIL, verbose = True) 
+X_DATA_PREFIX = 'hmi.m_720s.'
 CROP_FACTOR = .29289321881 #CROP_FACTOR * 2 is the portion you crop
 CROP_INDEX = 4096 * CROP_FACTOR
 MAGNETOGRAM_RESIZE = Image.LANCZOS
@@ -81,7 +82,7 @@ def download_fits_files(start,end,download_dir):
         current_time = current_time + download_chunk
         
 def save_hmi_array(hmi_data,timestamp,size,output_dir,cropped):
-    filename = timestamp.strftime('%Y%m%d_%H%M%S') + '_' + str(size)
+    filename = X_DATA_PREFIX + timestamp.strftime('%Y%m%d_%H%M%S') + '_' + str(size)
     savedir = os.path.join(output_dir + '_' + str(size),filename)
     if not cropped:
         resized_hmi_image = np.array(Image.fromarray(hmi_data).resize((size,size),MAGNETOGRAM_RESIZE))
@@ -117,11 +118,11 @@ end = datetime(2011,5,1,0,0,0)
 sizes = [256]
 dates = generate_daterange(start,end)
 #delete and regenerate Xdirectory
-shutil.rmtree(Xdata_dir)
-verify_dir(Xdata_dir)
+#shutil.rmtree(Xdata_dir)
+#verify_dir(Xdata_dir)
 #run code to generate magnetograms
-uncropped_dir = os.path.join(Xdata_dir,'uncropped_hmis')
+#uncropped_dir = os.path.join(Xdata_dir,'uncropped_hmis')
 cropped_dir = os.path.join(Xdata_dir,'cropped_hmis')
-extract_and_resize(dates,sizes,fits_dir,uncropped_dir,cropped = False)
+#extract_and_resize(dates,sizes,fits_dir,uncropped_dir,cropped = False)
 extract_and_resize(dates,sizes,fits_dir,cropped_dir,cropped = True)
 os.system('chmod -R +777 ' + Xdata_dir)
