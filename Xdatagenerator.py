@@ -12,9 +12,10 @@ CHUNK_SIZE = 480 #chunk size is the number of hmi files downloaded in each expor
 EXPORT_PROTOCOL = 'fits'#using as-is instead of fits will result in important metadata not being downloaded
 EMAIL = 'hsmgroupnasa@gmail.com'#use a group email
 X_DATA_SERIES = 'hmi.M_720s'
+#C = drms.Client(email=EMAIL, verbose = True) 
+X_DATA_PREFIX = 'hmi.m_720s.'
 DATA_EXTENSION = '_TAI.1.magnetogram.fits'
-C = drms.Client(email=EMAIL, verbose = True) 
-CROP_FACTOR = .29289321881 #CROP_FACTOR * 2 is the portion you crop
+CROP_FACTOR = .1464466094 #CROP_FACTOR * 2 is the portion you crop
 CROP_INDEX = 4096 * CROP_FACTOR
 MAGNETOGRAM_RESIZE = Image.LANCZOS
 
@@ -81,7 +82,7 @@ def download_fits_files(start,end,download_dir):
         current_time = current_time + download_chunk
         
 def save_hmi_array(hmi_data,timestamp,size,output_dir,cropped):
-    filename = X_DATA_SERIES + '.' + timestamp.strftime('%Y%m%d_%H%M%S') + '_' + str(size)
+    filename = X_DATA_PREFIX + timestamp.strftime('%Y%m%d_%H%M%S') + '_' + str(size)
     savedir = os.path.join(output_dir + '_' + str(size),filename)
     if not cropped:
         resized_hmi_image = np.array(Image.fromarray(hmi_data).resize((size,size),MAGNETOGRAM_RESIZE))
@@ -93,7 +94,7 @@ def save_hmi_array(hmi_data,timestamp,size,output_dir,cropped):
 def extract_and_resize(datetime_list,sizes,fits_dir,output_dir,cropped = False):
     generate_sizedirs(sizes,output_dir)
     for current_time in datetime_list:
-        filename =  X_DATA_SERIES + '.' + current_time.strftime('%Y%m%d_%H%M%S') + DATA_EXTENSION
+        filename =  X_DATA_PREFIX + current_time.strftime('%Y%m%d_%H%M%S') + DATA_EXTENSION
         file_dir = os.path.join(fits_dir,filename)
         if os.path.exists(file_dir):
             hmi_map = Map(file_dir)
