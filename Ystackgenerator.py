@@ -17,7 +17,7 @@ from sunpy.coordinates import frames
 from PIL import Image, ImageOps, ImageDraw, ImageFont
 
 TIME_INTERVAL = timedelta(minutes = 60)
-CROP_FACTOR = .29289321881 #CROP_FACTOR * 2 is the portion you crop
+CROP_FACTOR = .1464466094 #CROP_FACTOR * 2 is the portion you crop
 CROP_INDEX = 4096 * CROP_FACTOR
 SD_FACTOR = 3#SD_FACTOR is the number of standard deviations within the radius of the circle
 THRESHOLD = np.exp(-0.5 * SD_FACTOR**2)#there will be no values less than THRESHOLD in gaussian disks
@@ -266,8 +266,8 @@ def generate_filled_bitmap(start,end,sizes,dir_name,cropped = False):
                 save_bitmap_stack(image_list,current_time,size,dir_name,cropped)
                 
 #check savedur 
-savedir = '/nobackup/afeghhi/HMI_Data'
-#savedir = 'C:/Users/alexf/Desktop/HMI_Data'
+#savedir = '/nobackup/afeghhi/HMI_Data'
+savedir = 'C:/Users/alexf/Desktop/HMI_Data'
 verify_dir(savedir)
 Ydata_dir =  os.path.join(savedir, 'Ydata')
 verify_dir(Ydata_dir)
@@ -278,11 +278,15 @@ radius_dict = generate_radius_dict(max_radius_rows)#run if generating circles at
 #set start time, end time, and sizes to save in
 start = datetime(2010, 5, 1,0,0,0)#date time object format is year, month, day, hour, minute, second
 end = datetime(2011,5, 1, 0,0,0)#the end time is included amongst disks generated change back to year later
-sizes = [256]
+sizes = [256,512]
 #delete and regenerate Ydirectory
 shutil.rmtree(Ydata_dir)
 os.mkdir(Ydata_dir)
 #run commands to generate data
-generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'filled_bitmaps_uncropped'),cropped = False)
-generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'filled_bitmaps_cropped'),cropped = True)
+generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'bitmaps_uncropped'))
+generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'bitmaps_cropped'),cropped = True)
+generate_filled_ellipse(start,end,sizes,os.path.join(Ydata_dir,'filled_ellipses_uncropped'),dim_type = 'bounding-box')
+generate_filled_ellipse(start,end,sizes,os.path.join(Ydata_dir,'filled_ellipses_cropped'),dim_type = 'bounding-box',cropped = True)
+generate_gaussian_ellipse(start,end,sizes,os.path.join(Ydata_dir,'gaussian_ellipses_uncropped'),dim_type = 'bounding-box')
+generate_gaussian_ellipse(start,end,sizes,os.path.join(Ydata_dir,'gaussian_ellipses_cropped'),dim_type = 'bounding-box',cropped = True)
 os.system('chmod -R +777 ' + Ydata_dir)
