@@ -171,7 +171,7 @@ def generate_filled_circle(start,end,sizes,dir_name,cropped = False,dim_type = '
                     xc,yc = get_coords(row,current_time)
                     radius = get_radius(row,dim_type)
                     xc,yc,radius = np.array([xc,yc,radius]) * size / 4096#convert 4096-sized info to current disk size
-                    disk = Image.new('1', (size, size), color='black') # black/white canvas, initialized to zeros
+                    disk = Image.new('L', (size, size), color='black') # black/white canvas, initialized to zeros
                     draw = ImageDraw.Draw(disk)
                     draw.ellipse((xc-radius,yc-radius,xc+radius,yc+radius), 'white')
                     image_list.append(disk)
@@ -192,7 +192,7 @@ def generate_filled_ellipse(start,end,sizes,dir_name,cropped = False,dim_type = 
                     xc,yc = get_coords(row,current_time)
                     width,height = get_width_height(row,dim_type)
                     xc,yc,width,height = np.array([xc,yc,width,height]) * size / 4096#convert 4096-sized info to current disk size
-                    disk = Image.new('1', (size, size), color='black') # black/white canvas, initialized to zeros
+                    disk = Image.new('L',(size, size), color='black') # black/white canvas, initialized to zeros
                     draw = ImageDraw.Draw(disk)
                     draw.ellipse((xc-width,yc-height,xc+width,yc+height), 'white')
                     image_list.append(disk)
@@ -266,8 +266,8 @@ def generate_filled_bitmap(start,end,sizes,dir_name,cropped = False):
                 save_bitmap_stack(image_list,current_time,size,dir_name,cropped)
                 
 #check savedur 
-#savedir = '/nobackup/afeghhi/HMI_Data'
-savedir = 'C:/Users/alexf/Desktop/HMI_Data'
+savedir = '/nobackup/afeghhi/HMI_Data'
+#savedir = 'C:/Users/alexf/Desktop/HMI_Data'
 verify_dir(savedir)
 Ydata_dir =  os.path.join(savedir, 'Ydata')
 verify_dir(Ydata_dir)
@@ -280,13 +280,9 @@ start = datetime(2010, 5, 1,0,0,0)#date time object format is year, month, day, 
 end = datetime(2011,5, 1, 0,0,0)#the end time is included amongst disks generated change back to year later
 sizes = [256,512]
 #delete and regenerate Ydirectory
-shutil.rmtree(Ydata_dir)
-os.mkdir(Ydata_dir)
+#shutil.rmtree(Ydata_dir)
+#os.mkdir(Ydata_dir)
 #run commands to generate data
-generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'bitmaps_uncropped'))
-generate_filled_bitmap(start,end,sizes,os.path.join(Ydata_dir,'bitmaps_cropped'),cropped = True)
 generate_filled_ellipse(start,end,sizes,os.path.join(Ydata_dir,'filled_ellipses_uncropped'),dim_type = 'bounding-box')
 generate_filled_ellipse(start,end,sizes,os.path.join(Ydata_dir,'filled_ellipses_cropped'),dim_type = 'bounding-box',cropped = True)
-generate_gaussian_ellipse(start,end,sizes,os.path.join(Ydata_dir,'gaussian_ellipses_uncropped'),dim_type = 'bounding-box')
-generate_gaussian_ellipse(start,end,sizes,os.path.join(Ydata_dir,'gaussian_ellipses_cropped'),dim_type = 'bounding-box',cropped = True)
 os.system('chmod -R +777 ' + Ydata_dir)
