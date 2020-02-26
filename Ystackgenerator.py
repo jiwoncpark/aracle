@@ -73,7 +73,14 @@ def get_radius(row,radius_type):
     if radius_type == 'max-size':
         radius = radius_dict[row['HARPNUM']]
         return radius
-    raise ValueError('You have selected an invalid dimension type: {}. Please select: real-time,bounding-box,or max-size'.format(radius_type))
+    if radius_type == 'harp-size':
+        bitmap_dir = row['FILEDIR']
+        bitmap = get_bitmap(bitmap_dir)
+        width = np.sum(np.amax(bitmap,axis = 0))
+        height = np.sum(np.amax(bitmap,axis = 1))
+        radius = max(width,height)
+        return radius
+    raise ValueError('You have selected an invalid dimension type: {}. Please select: real-time,bounding-box,max-size, or harp-size'.format(radius_type))
 
 
 def get_width_height(row,width_height_type):
@@ -92,7 +99,13 @@ def get_width_height(row,width_height_type):
         width = int(radius_row.iloc[0]['NAXIS1'])
         height = int(radius_row.iloc[0]['NAXIS2'])
         return width,height
-    raise ValueError('You have selected an invalid dimension type: {}. Please select: real-time,bounding-box,or max-size'.format(width_height_type))
+    if width_height_type == 'harp-size':
+        bitmap_dir = row['FILEDIR']
+        bitmap = get_bitmap(bitmap_dir)
+        width = np.sum(np.amax(bitmap,axis = 0))
+        height = np.sum(np.amax(bitmap,axis = 1))
+        return width,height
+    raise ValueError('You have selected an invalid dimension type: {}. Please select: real-time,bounding-box,max-size, or harp-size'.format(width_height_type))
 
 def get_bitmap(fits_file_path):#run ignore warnings to kill warnings from the second line of this function 
     bitmap = sunpy.map.Map(fits_file_path)
@@ -283,6 +296,6 @@ sizes = [256,512]
 #shutil.rmtree(Ydata_dir)
 #os.mkdir(Ydata_dir)
 #run commands to generate data
-generate_filled_ellipse(start,end,sizes,os.path.join(Ydata_dir,'filled_ellipses_uncropped'),dim_type = 'bounding-box')
-generate_filled_ellipse(start,end,sizes,os.path.join(Ydata_dir,'filled_ellipses_cropped'),dim_type = 'bounding-box',cropped = True)
-os.system('chmod -R +777 ' + Ydata_dir)
+generate_filled_circle(start,end,sizes,os.path.join(Ydata_dir,'filled_circles_uncropped_harpsize'),dim_type = 'harp-size')
+generate_filled_ellipse(start,end,sizes,os.path.join(Ydata_dir,'filled_ellipses_uncropped_harpsize'),dim_type = 'harp-size')
+#os.system('chmod -R +777 ' + Ydata_dir)
